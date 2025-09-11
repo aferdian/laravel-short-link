@@ -80,10 +80,10 @@ class RedirectController extends Controller
             return ['vnd.youtube://' . $matches[0], 'YouTube'];
         }
         
-        // youtube videos
+        /*// youtube videos
         if (preg_match('/(youtube\.com|youtu\.be)\/(watch\?v=)?([a-zA-Z0-9_-]+)/', $url, $matches)) {
             return ['vnd.youtube:' . $matches[3], 'YouTube'];
-        }
+        }*/
 
         // youtube general
         if (preg_match('/youtube\.com\/([^\/]+)/', $url, $matches)) {
