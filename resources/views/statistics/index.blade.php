@@ -123,7 +123,7 @@
 
         const linkCreationsCtx = document.getElementById('linkCreationsChart').getContext('2d');
         new Chart(linkCreationsCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: @json($linkCreations->keys()),
                 datasets: [{
