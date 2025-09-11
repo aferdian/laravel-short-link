@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <x-favicon />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -30,7 +31,7 @@
             @endif
 
             <div class="max-w-7xl mx-auto p-6 lg:p-8">
-                <div class="flex justify-center">
+                <div class="flex justify-center text-gray-600 dark:text-gray-400">
                     <h1>Welcome to Short Link Generator</h1>
                 </div>
             </div>

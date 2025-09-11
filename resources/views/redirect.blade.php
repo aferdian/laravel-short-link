@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $link->name ?? 'Redirecting...' }}</title>
+    <x-favicon />
     <meta property="og:title" content="{{ $link->name ?? 'Redirecting...' }}">
     <meta property="og:description" content="{{ $link->description ?? 'Click to view the original content.' }}">
     <meta property="og:image" content="{{ $link->image ?? '' }}">
