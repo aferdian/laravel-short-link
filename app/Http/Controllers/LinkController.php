@@ -77,10 +77,12 @@ class LinkController extends Controller
 
         $categoryIds = [];
         if ($request->has('categories')) {
-            $categoryNames = explode(',', $request->categories);
-            foreach ($categoryNames as $categoryName) {
-                $category = Category::firstOrCreate(['name' => trim($categoryName)]);
-                $categoryIds[] = $category->id;
+            $categories = json_decode($request->categories);
+            if (is_array($categories)) {
+                foreach ($categories as $categoryData) {
+                    $category = Category::firstOrCreate(['name' => trim($categoryData->value)]);
+                    $categoryIds[] = $category->id;
+                }
             }
         }
         $link->categories()->sync($categoryIds);
@@ -171,10 +173,12 @@ class LinkController extends Controller
 
         $categoryIds = [];
         if ($request->has('categories')) {
-            $categoryNames = explode(',', $request->categories);
-            foreach ($categoryNames as $categoryName) {
-                $category = Category::firstOrCreate(['name' => trim($categoryName)]);
-                $categoryIds[] = $category->id;
+            $categories = json_decode($request->categories);
+            if (is_array($categories)) {
+                foreach ($categories as $categoryData) {
+                    $category = Category::firstOrCreate(['name' => trim($categoryData->value)]);
+                    $categoryIds[] = $category->id;
+                }
             }
         }
         $link->categories()->sync($categoryIds);
