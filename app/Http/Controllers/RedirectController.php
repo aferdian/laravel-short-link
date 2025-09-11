@@ -70,10 +70,14 @@ class RedirectController extends Controller
 
     private function getAppUrl($url)
     {
-
         // youtube shorts
         if (preg_match('/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
-            return ['youtube://shorts/' . $matches[1], 'YouTube'];
+            return ['vnd.youtube://shorts/' . $matches[1], 'YouTube'];
+        }
+
+        // youtube playlist
+        if (preg_match('/(youtube\.com|youtu\.be)\/(playlist\?list=)?([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            return ['vnd.youtube://' . $matches[0], 'YouTube'];
         }
         
         // youtube videos
