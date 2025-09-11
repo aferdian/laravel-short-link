@@ -42,7 +42,7 @@
 
             var timeout = setTimeout(function () {
                 window.location = webUrl;
-            }, 2500);
+            }, 1000);
 
             window.location = appUrl;
 
