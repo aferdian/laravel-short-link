@@ -20,13 +20,13 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="bg-white overflow-hidden">
                             <div class="p-6 text-gray-900">
                                 <h3 class="text-lg font-medium text-gray-900">Total Links</h3>
                                 <p class="mt-1 text-3xl font-semibold text-gray-700">{{ $totalLinks }}</p>
                             </div>
                         </div>
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="bg-white overflow-hidden">
                             <div class="p-6 text-gray-900">
                                 <h3 class="text-lg font-medium text-gray-900">Total Clicks</h3>
                                 <p class="mt-1 text-3xl font-semibold text-gray-700">{{ $totalClicks }}</p>
@@ -34,7 +34,7 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mt-6 bg-white overflow-hidden">
                         <div class="p-6 text-gray-900">
                             <canvas id="dailyClicksChart"></canvas>
                         </div>
