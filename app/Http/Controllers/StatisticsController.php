@@ -21,7 +21,7 @@ class StatisticsController extends Controller
             ->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])
             ->count();
 
-        $linkCreations = auth()->user()->links()
+        $linkCreationsData = auth()->user()->links()
             ->whereBetween('links.created_at', [$dateRange['start'], $dateRange['end']])
             ->groupBy(DB::raw('DATE(links.created_at)'))
             ->orderBy('date', 'asc')
@@ -31,7 +31,7 @@ class StatisticsController extends Controller
             ])
             ->pluck('count', 'date');
 
-        $clicks = auth()->user()->links()->with(['clicks' => function ($query) use ($dateRange) {
+        $clicksData = auth()->user()->links()->with(['clicks' => function ($query) use ($dateRange) {
             $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
         }])->get()->flatMap(function ($link) {
             return $link->clicks;
@@ -40,6 +40,20 @@ class StatisticsController extends Controller
         })->map(function ($day) {
             return $day->count();
         });
+
+        $period = new \DatePeriod(
+            new \DateTime($dateRange['start_date']),
+            new \DateInterval('P1D'),
+            new \DateTime($dateRange['end_date'] . ' +1 day')
+        );
+
+        $dateRangeArray = [];
+        foreach ($period as $key => $value) {
+            $dateRangeArray[$value->format('Y-m-d')] = 0;
+        }
+
+        $linkCreations = collect($dateRangeArray)->merge($linkCreationsData);
+        $clicks = collect($dateRangeArray)->merge($clicksData);
 
         $topLinks = auth()->user()->links()
             ->withCount(['clicks' => function ($query) use ($dateRange) {
@@ -101,6 +115,8 @@ class StatisticsController extends Controller
         return [
             'start' => $startDate . ' 00:00:00',
             'end' => $endDate . ' 23:59:59',
+            'start_date' => $startDate,
+            'end_date' => $endDate,
         ];
     }
 }

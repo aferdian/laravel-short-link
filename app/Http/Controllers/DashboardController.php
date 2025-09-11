@@ -23,13 +23,26 @@ class DashboardController extends Controller
 
         $links = $query->get();
 
-        $dailyClicks = $links->flatMap(function ($link) {
+        $dailyClicksData = $links->flatMap(function ($link) {
             return $link->clicks;
         })->groupBy(function ($click) {
             return $click->created_at->format('Y-m-d');
         })->map(function ($day) {
             return $day->count();
         });
+
+        $period = new \DatePeriod(
+            new \DateTime($startDate),
+            new \DateInterval('P1D'),
+            new \DateTime($endDate . ' +1 day')
+        );
+
+        $dateRangeArray = [];
+        foreach ($period as $key => $value) {
+            $dateRangeArray[$value->format('Y-m-d')] = 0;
+        }
+
+        $dailyClicks = collect($dateRangeArray)->merge($dailyClicksData);
 
         return view('dashboard', compact('totalLinks', 'totalClicks', 'dailyClicks'));
     }
