@@ -167,6 +167,7 @@
 
         const clicksCtx = document.getElementById('clicksChart').getContext('2d');
         const linkClicksData = @json($linkClicksData);
+        const allLinkClicksData = @json($allLinkClicksData);
         const linkNames = @json($linkNames);
         const linkColors = {};
         const colorPalette = [
@@ -216,9 +217,34 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
                         position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterBody: function(context) {
+                                const chart = context[0].chart;
+                                const currentDataIndex = context[0].dataIndex;
+                                const currentDate = chart.data.labels[currentDataIndex];
+                                const otherLinks = Object.keys(allLinkClicksData).filter(id => !Object.keys(linkClicksData).includes(id));
+                                const labels = [];
+
+                                otherLinks.forEach(linkId => {
+                                    if (allLinkClicksData[linkId][currentDate]) {
+                                        labels.push(`- ${linkNames[linkId]}: ${allLinkClicksData[linkId][currentDate]}`);
+                                    }
+                                });
+
+                                if (labels.length > 0) {
+                                    return ['\nOther Links:', ...labels];
+                                }
+                            }
+                        }
                     }
                 }
             }

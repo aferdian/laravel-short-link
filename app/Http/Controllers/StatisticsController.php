@@ -58,13 +58,42 @@ class StatisticsController extends Controller
             return $day->count();
         });
 
-        $linkClicksData = $clicksCollection->groupBy('link_id')->map(function ($clicksByLink) {
+        $allLinkClicksData = $clicksCollection->groupBy('link_id')->map(function ($clicksByLink) {
             return $clicksByLink->groupBy(function ($click) {
                 return $click->created_at->format('Y-m-d');
             })->map(function ($day) {
                 return $day->count();
             });
         });
+
+        $topLinksIds = $clicksCollection->groupBy('link_id')
+            ->map(function ($item) {
+                return $item->count();
+            })
+            ->sortDesc()
+            ->take(3)
+            ->keys();
+
+        $otherLinksClicks = $allLinkClicksData->filter(function ($value, $key) use ($topLinksIds) {
+            return !$topLinksIds->contains($key);
+        });
+
+        $linkClicksData = $allLinkClicksData->filter(function ($value, $key) use ($topLinksIds) {
+            return $topLinksIds->contains($key);
+        });
+
+        if ($otherLinksClicks->isNotEmpty()) {
+            $otherClicksData = [];
+            foreach ($otherLinksClicks as $linkId => $dates) {
+                foreach ($dates as $date => $count) {
+                    if (!isset($otherClicksData[$date])) {
+                        $otherClicksData[$date] = 0;
+                    }
+                    $otherClicksData[$date] += $count;
+                }
+            }
+            $linkClicksData->put('other', collect($otherClicksData));
+        }
 
         $period = new \DatePeriod(
             new \DateTime($dateRange['start_date']),
@@ -156,12 +185,19 @@ class StatisticsController extends Controller
 
         $linkNames = auth()->user()->links()->pluck('name', 'id');
 
+        $linkNames = auth()->user()->links()->pluck('name', 'id');
+        $linkNames->put('other', 'Other');
+
+        $linkNames = auth()->user()->links()->pluck('name', 'id');
+        $linkNames->put('other', 'Other');
+
         return view('statistics.index', compact(
             'totalLinks',
             'totalClicks',
             'linkCreations',
             'clicks',
             'linkClicksData',
+            'allLinkClicksData',
             'linkNames',
             'topLinks',
             'locations',
