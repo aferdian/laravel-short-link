@@ -34,7 +34,7 @@ class LinkController extends Controller
         $request->validate([
             'original_url' => ['required', 'url'],
             'alias' => ['nullable', 'alpha_dash', 'unique:links,alias'],
-            'categories' => ['nullable', 'string'],
+            'categories' => ['nullable', 'array'],
         ]);
 
         $metadata = [];
@@ -77,11 +77,12 @@ class LinkController extends Controller
 
         $categoryIds = [];
         if ($request->has('categories')) {
-            $categories = json_decode($request->categories);
-            if (is_array($categories)) {
-                foreach ($categories as $categoryData) {
-                    $category = Category::firstOrCreate(['name' => trim($categoryData->value)]);
-                    $categoryIds[] = $category->id;
+            foreach ($request->categories as $category) {
+                if (is_numeric($category)) {
+                    $categoryIds[] = $category;
+                } else {
+                    $newCategory = Category::firstOrCreate(['name' => $category]);
+                    $categoryIds[] = $newCategory->id;
                 }
             }
         }
@@ -118,7 +119,7 @@ class LinkController extends Controller
             'name' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'url'],
-            'categories' => ['nullable', 'string'],
+            'categories' => ['nullable', 'array'],
         ]);
 
         $updateData = [
@@ -173,11 +174,12 @@ class LinkController extends Controller
 
         $categoryIds = [];
         if ($request->has('categories')) {
-            $categories = json_decode($request->categories);
-            if (is_array($categories)) {
-                foreach ($categories as $categoryData) {
-                    $category = Category::firstOrCreate(['name' => trim($categoryData->value)]);
-                    $categoryIds[] = $category->id;
+            foreach ($request->categories as $category) {
+                if (is_numeric($category)) {
+                    $categoryIds[] = $category;
+                } else {
+                    $newCategory = Category::firstOrCreate(['name' => $category]);
+                    $categoryIds[] = $newCategory->id;
                 }
             }
         }

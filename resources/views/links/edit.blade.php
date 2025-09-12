@@ -53,7 +53,7 @@
                             <x-input-label for="categories" :value="__('Categories')" />
                             <select id="categories" name="categories[]" class="block mt-1 w-full" multiple>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->name }}" @if($link->categories->contains($category)) selected @endif>{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" @if($link->categories->contains($category)) selected @endif>{{ $category->name }}</option>
                                 @endforeach
                             </select>
                             <x-input-error :messages="$errors->get('categories')" class="mt-2" />
