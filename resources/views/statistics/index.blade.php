@@ -50,7 +50,7 @@
             <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-medium text-gray-900">Links</h3>
-                    <div class="h-64">
+                    <div class="h-64 mt-4">
                         <canvas id="linkCreationsChart" style="width: 100%;"></canvas>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
             <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-medium text-gray-900">Clicks</h3>
-                    <div class="h-64">
+                    <div class="h-64 mt-4">
                         <canvas id="clicksChart" style="width: 100%;"></canvas>
                     </div>
                 </div>
@@ -104,7 +104,7 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h3 class="text-lg font-medium text-gray-900">Browsers</h3>
-                        <div class="h-64">
+                        <div class="h-64 mt-4">
                             <canvas id="browsersChart"></canvas>
                         </div>
                     </div>
@@ -112,7 +112,7 @@
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h3 class="text-lg font-medium text-gray-900">Devices</h3>
-                        <div class="h-64">
+                        <div class="h-64 mt-4">
                             <canvas id="devicesChart"></canvas>
                         </div>
                     </div>
@@ -156,26 +156,71 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                }
             }
         });
 
         const clicksCtx = document.getElementById('clicksChart').getContext('2d');
+        const linkClicksData = @json($linkClicksData);
+        const linkNames = @json($linkNames);
+        const linkColors = {};
+        const colorPalette = [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)'
+        ];
+        let colorIndex = 0;
+
+        const linkClickDatasets = Object.keys(linkClicksData).map(linkId => {
+            if (!linkColors[linkId]) {
+                linkColors[linkId] = colorPalette[colorIndex % colorPalette.length];
+                colorIndex++;
+            }
+            const fullDateData = @json($clicks->keys()).reduce((acc, date) => {
+                acc[date] = linkClicksData[linkId][date] || 0;
+                return acc;
+            }, {});
+            return {
+                type: 'line',
+                label: linkNames[linkId] || 'Unknown Link',
+                data: Object.values(fullDateData),
+                borderColor: linkColors[linkId],
+                fill: false,
+                tension: 0.1
+            };
+        });
+
         new Chart(clicksCtx, {
             type: 'bar',
             data: {
                 labels: @json($clicks->keys()),
-                datasets: [{
-                    label: 'Clicks',
-                    data: @json($clicks->values()),
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
+                datasets: [
+                    {
+                        label: 'Total Clicks',
+                        data: @json($clicks->values()),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    },
+                    ...linkClickDatasets
+                ]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
             }
         });
 

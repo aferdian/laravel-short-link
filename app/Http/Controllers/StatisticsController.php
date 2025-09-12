@@ -46,14 +46,24 @@ class StatisticsController extends Controller
             ])
             ->pluck('count', 'date');
 
-        $clicksData = (clone $linksQuery)->with(['clicks' => function ($query) use ($dateRange) {
+        $clicksCollection = (clone $linksQuery)->with(['clicks' => function ($query) use ($dateRange) {
             $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
         }])->get()->flatMap(function ($link) {
             return $link->clicks;
-        })->groupBy(function ($click) {
+        });
+
+        $clicksData = $clicksCollection->groupBy(function ($click) {
             return $click->created_at->format('Y-m-d');
         })->map(function ($day) {
             return $day->count();
+        });
+
+        $linkClicksData = $clicksCollection->groupBy('link_id')->map(function ($clicksByLink) {
+            return $clicksByLink->groupBy(function ($click) {
+                return $click->created_at->format('Y-m-d');
+            })->map(function ($day) {
+                return $day->count();
+            });
         });
 
         $period = new \DatePeriod(
@@ -144,11 +154,15 @@ class StatisticsController extends Controller
         $userLinks = auth()->user()->links;
         $userCategories = $userLinks->pluck('categories')->flatten()->unique('id');
 
+        $linkNames = auth()->user()->links()->pluck('name', 'id');
+
         return view('statistics.index', compact(
             'totalLinks',
             'totalClicks',
             'linkCreations',
             'clicks',
+            'linkClicksData',
+            'linkNames',
             'topLinks',
             'locations',
             'browsers',
