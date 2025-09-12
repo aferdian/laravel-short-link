@@ -52,7 +52,11 @@
                         <!-- Categories -->
                         <div class="mt-4">
                             <x-input-label for="categories" :value="__('Categories')" />
-                            <x-text-input id="categories" class="block mt-1 w-full" type="text" name="categories" :value="old('categories')" />
+                            <select id="categories" name="categories[]" class="block mt-1 w-full" multiple>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->name }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
                             <x-input-error :messages="$errors->get('categories')" class="mt-2" />
                         </div>
 
@@ -71,15 +75,11 @@
     </div>
 @push('scripts')
 <script>
-    var input = document.querySelector('input[name=categories]');
-    new Tagify(input, {
-        whitelist: @json($categories->pluck('name')),
-        dropdown: {
-            maxItems: 20,
-            classname: "tags-look",
-            enabled: 0,
-            closeOnSelect: false
-        }
+    $(document).ready(function() {
+        $('#categories').select2({
+            tags: true,
+            tokenSeparators: [',']
+        });
     });
 </script>
 @endpush
