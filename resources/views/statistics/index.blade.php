@@ -4,8 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight mb-4 md:mb-0">
                 {{ __('Statistics') }}
             </h2>
-            <form method="GET" action="{{ route('statistics.index') }}" class="flex flex-col md:flex-row items-center md:space-x-4">
-                <div class="w-full md:w-auto md:flex-grow mb-4 md:mb-0 md:min-w-[300px]">
+            <form method="GET" action="{{ route('statistics.index') }}" class="filter-statistic flex flex-col md:flex-row items-center">
+                <div class="filter-item w-full md:w-auto md:flex-grow mb-4 md:mb-0 md:min-w-[300px]">
                     <select id="filter" name="filter" class="block w-full">
                         <option value="">All</option>
                         <optgroup label="Links">
@@ -20,8 +20,8 @@
                         </optgroup>
                     </select>
                 </div>
-                <div class="flex w-full md:w-auto">
-                    <x-text-input id="date_range" class="block w-full" rounding="rounded-l-md" type="text" name="date_range" :value="request('date_range')" />
+                <div class="filter-date flex w-full md:w-auto">
+                    <x-text-input id="date_range" class="block w-full" rounding="rounded-l-md md:rounded-none" type="text" name="date_range" :value="request('date_range')" />
                     <x-primary-button rounding="rounded-r-md">
                         {{ __('Filter') }}
                     </x-primary-button>

@@ -53,6 +53,13 @@
                 border-radius: 0.375rem 0 0 0.375rem;
                 border-right: none;
             }
+
+            @media (min-width: 768px) {
+                form.filter-statistic .filter-item .select2-selection {
+                    border-radius: 0.375rem 0 0 0.375rem !important;
+                    border-right: none;
+                }
+            }
         </style>
     </head>
     <body class="font-sans antialiased">
