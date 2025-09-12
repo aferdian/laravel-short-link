@@ -4,8 +4,23 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight mb-4 md:mb-0">
                 {{ __('Statistics') }}
             </h2>
-            <form method="GET" action="{{ route('statistics.index') }}">
-                <div class="flex">
+            <form method="GET" action="{{ route('statistics.index') }}" class="flex flex-col md:flex-row items-center md:space-x-4">
+                <div class="w-full md:w-auto md:flex-grow mb-4 md:mb-0 md:min-w-[300px]">
+                    <select id="filter" name="filter" class="block w-full">
+                        <option value="">All</option>
+                        <optgroup label="Links">
+                            @foreach($userLinks as $link)
+                                <option value="link-{{ $link->id }}" @if(request('filter') == "link-{$link->id}") selected @endif>{{ $link->name }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="Categories">
+                            @foreach($userCategories as $category)
+                                <option value="category-{{ $category->id }}" @if(request('filter') == "category-{$category->id}") selected @endif>{{ $category->name }}</option>
+                            @endforeach
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="flex w-full md:w-auto">
                     <x-text-input id="date_range" class="block w-full" rounding="rounded-l-md" type="text" name="date_range" :value="request('date_range')" />
                     <x-primary-button rounding="rounded-r-md">
                         {{ __('Filter') }}
@@ -111,6 +126,12 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        $(document).ready(function() {
+            $('#filter').select2({
+                width: '100%'
+            });
+        });
+
         flatpickr("#date_range", {
             mode: "range",
             dateFormat: "Y-m-d",

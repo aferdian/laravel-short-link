@@ -38,6 +38,21 @@
             .select2-container .select2-selection--multiple {
                 min-height: 2.625rem;
             }
+            .select2-container--default .select2-selection--single {
+                border-color: #d1d5db;
+                border-radius: 0.375rem;
+                height: 2.625rem;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 2.625rem;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 2.625rem;
+            }
+            .filter-link .select2-container--default .select2-selection--single {
+                border-radius: 0.375rem 0 0 0.375rem;
+                border-right: none;
+            }
         </style>
     </head>
     <body class="font-sans antialiased">

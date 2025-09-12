@@ -13,15 +13,30 @@ class StatisticsController extends Controller
     {
         $dateRange = $this->getDateRange($request);
 
-        $totalLinks = auth()->user()->links()
-            ->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])
-            ->count();
+        $linksQuery = auth()->user()->links();
+        $clicksQuery = auth()->user()->clicks();
 
-        $totalClicks = auth()->user()->clicks()
-            ->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])
-            ->count();
+        $filter = $request->filter;
+        if ($filter) {
+            [$filterType, $filterValue] = explode('-', $filter);
 
-        $linkCreationsData = auth()->user()->links()
+            if ($filterType === 'link') {
+                $linksQuery->where('id', $filterValue);
+                $clicksQuery->where('link_id', $filterValue);
+            } elseif ($filterType === 'category') {
+                $linksQuery->whereHas('categories', function ($query) use ($filterValue) {
+                    $query->where('category_id', $filterValue);
+                });
+                $clicksQuery->whereHas('link.categories', function ($query) use ($filterValue) {
+                    $query->where('category_id', $filterValue);
+                });
+            }
+        }
+
+        $totalLinks = (clone $linksQuery)->whereBetween('created_at', [$dateRange['start'], $dateRange['end']])->count();
+        $totalClicks = (clone $clicksQuery)->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])->count();
+
+        $linkCreationsData = (clone $linksQuery)
             ->whereBetween('links.created_at', [$dateRange['start'], $dateRange['end']])
             ->groupBy(DB::raw('DATE(links.created_at)'))
             ->orderBy('date', 'asc')
@@ -31,7 +46,7 @@ class StatisticsController extends Controller
             ])
             ->pluck('count', 'date');
 
-        $clicksData = auth()->user()->links()->with(['clicks' => function ($query) use ($dateRange) {
+        $clicksData = (clone $linksQuery)->with(['clicks' => function ($query) use ($dateRange) {
             $query->whereBetween('created_at', [$dateRange['start'], $dateRange['end']]);
         }])->get()->flatMap(function ($link) {
             return $link->clicks;
@@ -55,7 +70,7 @@ class StatisticsController extends Controller
         $linkCreations = collect($dateRangeArray)->merge($linkCreationsData);
         $clicks = collect($dateRangeArray)->merge($clicksData);
 
-        $topLinks = auth()->user()->links()
+        $topLinks = (clone $linksQuery)
             ->withCount(['clicks' => function ($query) use ($dateRange) {
                 $query->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']]);
             }])
@@ -66,6 +81,17 @@ class StatisticsController extends Controller
         $locations = DB::table('clicks')
             ->join('links', 'links.id', '=', 'clicks.link_id')
             ->where('links.user_id', auth()->id())
+            ->when($filter, function ($query) use ($filter) {
+                [$filterType, $filterValue] = explode('-', $filter);
+                if ($filterType === 'link') {
+                    return $query->where('links.id', $filterValue);
+                }
+                if ($filterType === 'category') {
+                    return $query->whereIn('links.id', function ($subQuery) use ($filterValue) {
+                        $subQuery->select('link_id')->from('category_link')->where('category_id', $filterValue);
+                    });
+                }
+            })
             ->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])
             ->whereNotNull('clicks.location')
             ->select('clicks.location', DB::raw('count(*) as total'))
@@ -76,6 +102,17 @@ class StatisticsController extends Controller
         $browsers = DB::table('clicks')
             ->join('links', 'links.id', '=', 'clicks.link_id')
             ->where('links.user_id', auth()->id())
+            ->when($filter, function ($query) use ($filter) {
+                [$filterType, $filterValue] = explode('-', $filter);
+                if ($filterType === 'link') {
+                    return $query->where('links.id', $filterValue);
+                }
+                if ($filterType === 'category') {
+                    return $query->whereIn('links.id', function ($subQuery) use ($filterValue) {
+                        $subQuery->select('link_id')->from('category_link')->where('category_id', $filterValue);
+                    });
+                }
+            })
             ->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])
             ->whereNotNull('clicks.browser')
             ->select('clicks.browser', DB::raw('count(*) as total'))
@@ -86,12 +123,26 @@ class StatisticsController extends Controller
         $devices = DB::table('clicks')
             ->join('links', 'links.id', '=', 'clicks.link_id')
             ->where('links.user_id', auth()->id())
+            ->when($filter, function ($query) use ($filter) {
+                [$filterType, $filterValue] = explode('-', $filter);
+                if ($filterType === 'link') {
+                    return $query->where('links.id', $filterValue);
+                }
+                if ($filterType === 'category') {
+                    return $query->whereIn('links.id', function ($subQuery) use ($filterValue) {
+                        $subQuery->select('link_id')->from('category_link')->where('category_id', $filterValue);
+                    });
+                }
+            })
             ->whereBetween('clicks.created_at', [$dateRange['start'], $dateRange['end']])
             ->whereNotNull('clicks.os')
             ->select('clicks.os', DB::raw('count(*) as total'))
             ->groupBy('clicks.os')
             ->orderBy('total', 'desc')
             ->get();
+
+        $userLinks = auth()->user()->links;
+        $userCategories = $userLinks->pluck('categories')->flatten()->unique('id');
 
         return view('statistics.index', compact(
             'totalLinks',
@@ -101,7 +152,9 @@ class StatisticsController extends Controller
             'topLinks',
             'locations',
             'browsers',
-            'devices'
+            'devices',
+            'userLinks',
+            'userCategories'
         ));
     }
 
