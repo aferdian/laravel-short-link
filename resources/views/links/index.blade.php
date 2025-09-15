@@ -43,7 +43,7 @@
                                             <div class="flex items-center hidden md:flex">
                                                 <div class="w-[100px] h-[100px] rounded-[5px] mr-4 overflow-hidden flex-shrink-0">
                                                     @if ($link->image)
-                                                        <img src="{{ $link->image }}" alt="{{ $link->name }}" class="meta-image w-full h-full object-cover text-center text-xs text-gray-400 bg-gray-200 flex justify-center items-center before:p-2">
+                                                        <img src="{{ asset($link->image) }}" alt="{{ $link->name }}" class="meta-image w-full h-full object-cover text-center text-xs text-gray-400 bg-gray-200 flex justify-center items-center before:p-2">
                                                         <!--  onerror="this.onerror=null;this.src='https://placehold.co/100?text={{ urlencode(preg_replace("/ /", "\n", $link->name)) }}';" -->
                                                     @else
                                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
@@ -65,7 +65,7 @@
                                                 <div class="flex mb-2">
                                                     <div class="w-[100px] h-[100px] rounded-[5px] mr-4 overflow-hidden flex-shrink-0">
                                                         @if ($link->image)
-                                                            <img src="{{ $link->image }}" alt="{{ $link->name }}" class="w-full h-full object-cover">
+                                                            <img src="{{ asset($link->image) }}" alt="{{ $link->name }}" class="w-full h-full object-cover">
                                                         @else
                                                             <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
                                                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L20 16m-2-6a2 2 0 100-4 2 2 0 000 4z"></path></svg>

@@ -5,10 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Link;
 use App\Models\Category;
+use Illuminate\Support\Facades\Log;
 use GuzzleHttp\Client;
+use App\Services\ImageService;
+use Illuminate\Support\Str;
 
 class LinkController extends Controller
 {
+    protected $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -63,10 +72,20 @@ class LinkController extends Controller
             $metadata = [
                 'name' => $title,
                 'description' => $description,
-                'image' => $image,
+                'image' => null, // Initialize image to null
             ];
+
+            if (!empty($image)) { // Use the fetched $image URL
+                $optimizedImagePath = $this->imageService->downloadAndOptimizeImage($image);
+                if ($optimizedImagePath) {
+                    $metadata['image'] = $optimizedImagePath;
+                } else {
+                    $metadata['image'] = null; // Set to null if download/optimization failed
+                }
+            }
+
         } catch (\Exception $e) {
-            //
+            \Log::error("LinkController: Failed to fetch metadata for {$request->original_url}. Error: {$e->getMessage()}");
         }
 
         $link = auth()->user()->links()->create(array_merge([
@@ -118,7 +137,7 @@ class LinkController extends Controller
             'alias' => ['nullable', 'alpha_dash', 'unique:links,alias,' . $link->id],
             'name' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'url'],
+            'image' => ['nullable', 'string'],
             'categories' => ['nullable', 'array'],
         ]);
 
@@ -130,8 +149,26 @@ class LinkController extends Controller
             'image' => $request->image,
         ];
 
+        // Handle image from request if provided
+        if ($request->has('image')) {
+            $newImage = $request->input('image');
+            if (empty($newImage)) {
+                $updateData['image'] = null; // Allow removing the image
+            } elseif (Str::startsWith($newImage, ['http://', 'https://'])) {
+                // Commenting this code out to prevent automatic downloading of new images from URLs, use the provided url as it is
+                // The downloading is only for the automatic meta getting, not for user-provided URLs
+                /*// If a new, valid URL is provided, download and optimize it.
+                $optimizedImagePath = $this->imageService->downloadAndOptimizeImage($newImage);
+                if ($optimizedImagePath) {
+                    $updateData['image'] = $optimizedImagePath;
+                }*/
+            }
+            // If the existing relative path is submitted, we do nothing,
+            // as $updateData['image'] is already pre-filled with the existing path.
+        }
+
         // If name, description, or image are empty, try to fetch metadata
-        if (empty($request->name) || empty($request->description) || empty($request->image)) {
+        if (empty($request->name) || empty($request->description) || (empty($request->image) && empty($updateData['image']))) {
             try {
                 $client = new Client();
                 $response = $client->get($request->original_url);
@@ -142,7 +179,7 @@ class LinkController extends Controller
 
                 $title = $doc->getElementsByTagName('title')->item(0)->nodeValue;
                 $description = '';
-                $image = '';
+                $fetchedImage = ''; // Use a different variable name to avoid conflict
 
                 $metas = $doc->getElementsByTagName('meta');
                 for ($i = 0; $i < $metas->length; $i++) {
@@ -151,7 +188,7 @@ class LinkController extends Controller
                         $description = $meta->getAttribute('content');
                     }
                     if ($meta->getAttribute('property') == 'og:image') {
-                        $image = $meta->getAttribute('content');
+                        $fetchedImage = $meta->getAttribute('content');
                     }
                 }
 
@@ -161,12 +198,18 @@ class LinkController extends Controller
                 if (empty($request->description)) {
                     $updateData['description'] = $description;
                 }
-                if (empty($request->image)) {
-                    $updateData['image'] = $image;
+                // Only fetch and optimize if no image was provided in the request or already fetched
+                if (empty($request->image) && empty($updateData['image']) && !empty($fetchedImage)) {
+                    $optimizedImagePath = $this->imageService->downloadAndOptimizeImage($fetchedImage);
+                    if ($optimizedImagePath) {
+                        $updateData['image'] = $optimizedImagePath;
+                    } else {
+                        $updateData['image'] = null; // Set to null if download/optimization failed
+                    }
                 }
 
             } catch (\Exception $e) {
-                // Log the exception or handle it as needed
+                \Log::error("LinkController: Failed to fetch metadata for {$request->original_url}. Error: {$e->getMessage()}");
             }
         }
 

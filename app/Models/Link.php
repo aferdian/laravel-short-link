@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Support\Facades\Storage;
+
 class Link extends Model
 {
     use HasFactory;
@@ -18,6 +20,19 @@ class Link extends Model
         'description',
         'image',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($link) {
+            if ($link->image) {
+                // Remove '/assets/' prefix to get the path relative to the public disk root
+                $path = str_replace('/assets/', '', $link->image);
+                Storage::disk('public')->delete($path);
+            }
+        });
+    }
 
     public function user()
     {
