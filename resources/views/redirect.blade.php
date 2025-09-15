@@ -7,7 +7,7 @@
     <x-favicon />
     <meta property="og:title" content="{{ $link->name ?? 'Redirecting...' }}">
     <meta property="og:description" content="{{ $link->description ?? 'Click to view the original content.' }}">
-    <meta property="og:image" content="{{ $link->image ?? '' }}">
+    <meta property="og:image" content="{{ asset($link->image ?? '') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .loader {
